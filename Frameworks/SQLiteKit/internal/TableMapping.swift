@@ -131,9 +131,9 @@ struct TableMapping {
         ///
         /// - Parameter object: object
         /// - Returns: object value of the column
-        func getValue(of object: SQLiteCodable) -> Any {
+        func getValue(of object: SQLiteCodable) -> Any? {
             let mirror = Mirror(reflecting: object)
-            return mirror.children.first(where: { $0.label == name })!.value
+            return mirror.children.first(where: { $0.label == name })?.value
         }
         
     }

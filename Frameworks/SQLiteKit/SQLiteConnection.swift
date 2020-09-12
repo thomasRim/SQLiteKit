@@ -463,41 +463,44 @@ public class SQLiteConnection {
     
     // MARK: - Update
     
-    /// Updates all of the columns of a table using the specified object
-    /// except for its primary key.
-    /// The object is required to have a primary key.
-    ///
-    /// - Parameter obj: The object to update. It must have a primary key designated using the Attribute.isPK.
-    /// - Returns: The number of rows updated.
-    /// - Throws: Exceptions
-    @discardableResult
-    public func update<T: SQLiteCodable>(_ obj: T) throws -> Int {
-        let map = getMapping(of: T.self)
-        guard let pk = map.pk else {
-            throw SQLiteError.notSupportedError("Could not update table without primary key")
-        }
-        let cols = map.columns.filter { return $0.isPK == false }
-        let sets = cols.map { return "\($0.name) = ?" }.joined(separator: ",")
-        var values: [Any] = cols.map { return $0.getValue(of: obj) }
-        values.append(pk.getValue(of: obj))
-        let sql = String(format: "UPDATE %@ SET %@ WHERE %@ = ?", map.tableName, sets, pk.name)
-        return try execute(sql, parameters: values)
-    }
+//    /// Updates all of the columns of a table using the specified object
+//    /// except for its primary key.
+//    /// The object is required to have a primary key.
+//    ///
+//    /// - Parameter obj: The object to update. It must have a primary key designated using the Attribute.isPK.
+//    /// - Returns: The number of rows updated.
+//    /// - Throws: Exceptions
+//    @discardableResult
+//    public func update<T: SQLiteCodable>(_ obj: T) throws -> Int {
+//        let map = getMapping(of: T.self)
+//        guard let pk = map.pk else {
+//            throw SQLiteError.notSupportedError("Could not update table without primary key")
+//        }
+//
+//        let value = map.columns.first(where: {$0.isPK})?.getValue(of: obj) as? Int ?? 0
+//
+//        let cols = map.columns.filter { return $0.isPK == false && $0.getValue(of: obj) != nil }
+//        let sets = cols.compactMap { if let _ = $0.getValue(of: obj) {return "\($0.name) = ?"} else {return nil} }.joined(separator: ",")
+//        let values: [Any] = cols.compactMap { return $0.getValue(of: obj) }
+////        values.append(value)
+//        let sql = String(format: "UPDATE %@ SET %@ WHERE \(pk.name) = \(value)", map.tableName, sets)
+//        return try execute(sql, parameters: [values])
+//    }
     
-    @discardableResult
-    public func upsert<T: SQLiteCodable>(_ obj: T) throws -> Int {
-        if SQLiteConnection.libVersionNumber > 3024000 {
-            // TODO
-        } else {
-            // create two statements
-            let result = try insert(obj, extra: "OR IGNORE")
-            if result == 0 {
-                return try update(obj)
-            }
-            return result
-        }
-        return 0
-    }
+//    @discardableResult
+//    public func upsert<T: SQLiteCodable>(_ obj: T) throws -> Int {
+//        if SQLiteConnection.libVersionNumber > 3024000 {
+//            // TODO
+//        } else {
+//            // create two statements
+//            let result = try insert(obj, extra: "OR IGNORE")
+//            if result == 0 {
+//                return try update(obj)
+//            }
+//            return result
+//        }
+//        return 0
+//    }
     
     // MARK: - Delete
     
@@ -512,8 +515,11 @@ public class SQLiteConnection {
         guard let pk = map.pk else {
             throw SQLiteError.notSupportedError("Could not delete row without primary key")
         }
+
+        let value = map.columns.first(where: {$0.isPK})?.getValue(of: obj) as? Int ?? 0
+        
         let sql = "DELETE FROM \(map.tableName) WHERE \(pk.name) = ?"
-        return try execute(sql, parameters: [pk.value])
+        return try execute(sql, parameters: [value])
     }
     
     

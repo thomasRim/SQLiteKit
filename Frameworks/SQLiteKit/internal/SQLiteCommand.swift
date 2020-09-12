@@ -79,6 +79,20 @@ class SQLiteCommand {
                 code = SQLite3.bindDouble(stmt, index: index, value: interval)
             case let v as URL:
                 code = SQLite3.bindText(stmt, index: index, value: v.absoluteString)
+            case let v as [String]:
+                code = SQLite3.bindText(stmt, index: index, value: v.joined(separator: ", "))
+            case let v as [Int]:
+                code = SQLite3.bindText(stmt, index: index, value: v.compactMap({"\($0)"}).joined(separator: ", "))
+            case let v as [Int32]:
+                code = SQLite3.bindText(stmt, index: index, value: v.compactMap({"\($0)"}).joined(separator: ", "))
+            case let v as [Int64]:
+                code = SQLite3.bindText(stmt, index: index, value: v.compactMap({"\($0)"}).joined(separator: ", "))
+            case let v as [Float]:
+                code = SQLite3.bindText(stmt, index: index, value: v.compactMap({"\($0)"}).joined(separator: ", "))
+            case let v as [Double]:
+                code = SQLite3.bindText(stmt, index: index, value: v.compactMap({"\($0)"}).joined(separator: ", "))
+            case let v as [CGFloat]:
+                code = SQLite3.bindText(stmt, index: index, value: v.compactMap({"\($0)"}).joined(separator: ", "))
             case let v as Data:
                 code = SQLite3.bindBlob(stmt, index: index, value: v)
             default:
@@ -97,7 +111,29 @@ class SQLiteCommand {
     func readColumn(_ stmt: SQLiteStatement, index: Int, columnType: SQLite3.ColumnType, type: Any.Type) -> Any? {
         switch columnType {
         case .Text:
-            return SQLite3.columnText(stmt, index: index)
+            let text = SQLite3.columnText(stmt, index: index)
+            if type is Array<String>.Type {
+                return text.components(separatedBy: ", ")
+            }
+            if type is Array<Int>.Type {
+                return text.components(separatedBy: ", ").compactMap({Int($0)})
+            }
+            if type is Array<Int32>.Type {
+                return text.components(separatedBy: ", ").compactMap({Int32($0)})
+            }
+            if type is Array<Int64>.Type {
+                return text.components(separatedBy: ", ").compactMap({Int64($0)})
+            }
+            if type is Array<Double>.Type {
+                return text.components(separatedBy: ", ").compactMap({Double($0)})
+            }
+            if type is Array<Float>.Type {
+                return text.components(separatedBy: ", ").compactMap({Float($0)})
+            }
+            if type is Array<CGFloat>.Type {
+                return text.components(separatedBy: ", ").compactMap({ CGFloat(truncating: NumberFormatter().number(from: $0) ?? 0) })
+            }
+            return text
         case .Integer:
             let value = SQLite3.columnInt(stmt, index: index)
             if type is Bool.Type {
