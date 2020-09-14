@@ -46,6 +46,7 @@ class ViewController: UIViewController {
         if let res: [User] = userQuery.filter(using: NSPredicate(format: "userID = 2")), res.count > 0 {
             
             var ru = res[0]
+            
 //            try? db.delete(res[0])
 
             ru.items = ["asfasdfasdfasdf", "\(Date().timeIntervalSince1970)"]
@@ -54,18 +55,15 @@ class ViewController: UIViewController {
             } catch let err {
                 print("\(err)")
             }
-//            print(res)
         }
         
         let u = User()
-//        u.userID = 2
         u.name = "222"
         u.age = 30
         u.items = ["wef","qwef"]
         u.birthday = Date()
 
         try? db.insert(u)
-        
         
         users = userQuery.limit(30).toList()
         print(users)
